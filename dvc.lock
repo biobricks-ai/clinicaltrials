@@ -1,2 +1,35 @@
 schema: '2.0'
-stages: {}
+stages:
+  download:
+    cmd: stages/01_download.sh
+    deps:
+    - path: stages/01_download.sh
+      hash: md5
+      md5: abc165f7593efd41bc282598de2ccc72
+      size: 404
+      isexec: true
+    outs:
+    - path: download
+      hash: md5
+      md5: 29533a31d1d1a67f956b981cbfe6e89e.dir
+      size: 2473160701
+      nfiles: 1
+  build:
+    cmd: stages/02_build.sh
+    deps:
+    - path: download
+      hash: md5
+      md5: 29533a31d1d1a67f956b981cbfe6e89e.dir
+      size: 2473160701
+      nfiles: 1
+    - path: stages/02_build.sh
+      hash: md5
+      md5: 5a5206a89792a704d40fa8a957ff28dc
+      size: 921
+      isexec: true
+    outs:
+    - path: brick
+      hash: md5
+      md5: 4b22d3565d0288b7953510c50cf76aa9.dir
+      size: 3165373809
+      nfiles: 688
