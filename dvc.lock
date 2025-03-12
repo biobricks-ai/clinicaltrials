@@ -7,7 +7,6 @@ stages:
       hash: md5
       md5: abc165f7593efd41bc282598de2ccc72
       size: 404
-      isexec: true
     outs:
     - path: download
       hash: md5
@@ -26,10 +25,9 @@ stages:
       hash: md5
       md5: 5a5206a89792a704d40fa8a957ff28dc
       size: 921
-      isexec: true
     outs:
     - path: brick
       hash: md5
-      md5: 4b22d3565d0288b7953510c50cf76aa9.dir
+      md5: cf140f316567e40a8ce96e8deec42e41.dir
       size: 3165373809
       nfiles: 688
