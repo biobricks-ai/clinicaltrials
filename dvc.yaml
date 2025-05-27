@@ -22,4 +22,4 @@ stages:
       - stages/02_build.sh
       - download/ctg-studies.json.zip
     outs:
-      - brick
+      - brick/ctg-studies.parquet
