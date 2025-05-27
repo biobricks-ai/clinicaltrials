@@ -14,12 +14,12 @@ stages:
     deps:
       - stages/01_download.sh
     outs:
-      - download
+      - download/ctg-studies.json.zip
   
   build: 
     cmd: stages/02_build.sh
     deps:
       - stages/02_build.sh
-      - download
+      - download/ctg-studies.json.zip
     outs:
       - brick
