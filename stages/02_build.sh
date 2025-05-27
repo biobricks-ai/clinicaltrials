@@ -21,7 +21,7 @@ echo "Brick path: $brickpath"
 
 [ -d "$rawpath" ] && rm -R $rawpath
 
-# Unzip 
+# Unzip
 unzip -q -d $rawpath $downloadpath/ctg-studies.json.zip
 
 # Create 4-digit NCT buckets in the dataset

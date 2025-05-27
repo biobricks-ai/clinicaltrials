@@ -16,7 +16,7 @@ mkdir -p "$downloadpath"
 
 TARGET_FILE="$downloadpath"/ctg-studies.json.zip
 
-# Download zipped 
+# Download zipped
 # NOTE: Using `--content-disposition` then checking the file name here to make sure
 # API's headers continue to work properly. This is instead of setting the
 # filename directly.
