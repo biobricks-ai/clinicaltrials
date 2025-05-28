@@ -14,7 +14,7 @@ cd newbrick
     - ``03_build.sh`` calling a function to process individual files like ``csv2parquet.R`` or ``csv2parquet.py``
 
 3. Replace stages in dvc.yaml with your new stages
-    
+
 4. Build your brick
 ```
 dvc repro # runs new stages
@@ -22,7 +22,7 @@ dvc repro # runs new stages
 
 5. Push the data to biobricks.ai
 ```
-dvc push -r s3.biobricks.ai 
+dvc push -r s3.biobricks.ai
 ```
 
 6. Commit the brick

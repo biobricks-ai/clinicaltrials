@@ -24,4 +24,4 @@ COPY (
             ignore_errors = false
         )
     ORDER BY nct_id
-) TO 'brick/NCT_PREFIX_PARQUET.parquet' (FORMAT PARQUET, ROW_GROUP_SIZE 100_000)
+) TO 'brick/ctg-studies.parquet/NCT_PREFIX_PARQUET.parquet' (FORMAT PARQUET, ROW_GROUP_SIZE 100_000)

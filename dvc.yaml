@@ -3,9 +3,9 @@
 
 # The complete process can be executed using:
 # dvc repro
-# If you want to force redoing the process use 
+# If you want to force redoing the process use
 # dvc repro -f
-# Individual stage can be executed using: 
+# Individual stage can be executed using:
 # dvc repro <stage>
 
 stages:
@@ -14,12 +14,12 @@ stages:
     deps:
       - stages/01_download.sh
     outs:
-      - download
-  
-  build: 
+      - download/ctg-studies.json.zip
+
+  build:
     cmd: stages/02_build.sh
     deps:
       - stages/02_build.sh
-      - download
+      - download/ctg-studies.json.zip
     outs:
-      - brick
+      - brick/ctg-studies.parquet

@@ -21,11 +21,14 @@ echo "Brick path: $brickpath"
 
 [ -d "$rawpath" ] && rm -R $rawpath
 
-# Unzip 
+# Unzip
 unzip -q -d $rawpath $downloadpath/ctg-studies.json.zip
 
+# Create 4-digit NCT buckets in the dataset
+export datasetpath="$brickpath/ctg-studies.parquet"
+mkdir -p $datasetpath
+echo "Dataset path: $datasetpath"
 
-# Create 4-digit NCT buckets
 find raw -type f -printf "%f\n" \
   | grep -P -o 'NCT\d{4}' \
   | sort -u \
