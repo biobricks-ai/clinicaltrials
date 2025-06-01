@@ -5,29 +5,27 @@ stages:
     deps:
     - path: stages/01_download.sh
       hash: md5
-      md5: abc165f7593efd41bc282598de2ccc72
-      size: 404
+      md5: fe616ea0d9a8576c9ab5086b89ada3da
+      size: 713
     outs:
-    - path: download
+    - path: download/ctg-studies.json.zip
       hash: md5
-      md5: 29533a31d1d1a67f956b981cbfe6e89e.dir
-      size: 2473160701
-      nfiles: 1
+      md5: 0eb4f273a92ed3a467277ffa70e715c3
+      size: 2524865839
   build:
     cmd: stages/02_build.sh
     deps:
-    - path: download
+    - path: download/ctg-studies.json.zip
       hash: md5
-      md5: 29533a31d1d1a67f956b981cbfe6e89e.dir
-      size: 2473160701
-      nfiles: 1
+      md5: 0eb4f273a92ed3a467277ffa70e715c3
+      size: 2524865839
     - path: stages/02_build.sh
       hash: md5
-      md5: 5a5206a89792a704d40fa8a957ff28dc
-      size: 921
+      md5: 98d62b5cc54498aa411ecbdffa60bc2e
+      size: 1043
     outs:
-    - path: brick
+    - path: brick/ctg-studies.parquet
       hash: md5
-      md5: cf140f316567e40a8ce96e8deec42e41.dir
-      size: 3165373809
-      nfiles: 688
+      md5: e1bb98c06c93f1a84ae53146b26a36a2.dir
+      size: 3235829971
+      nfiles: 700
