@@ -16,7 +16,8 @@ val sqlStatements = sqlContent
 
 for (stmt <- sqlStatements) {
   println(s">>> Running SQL:\n${stmt.take(120)}...")
-  spark.sql(stmt)
+  val result = spark.sql(stmt)
+  result.show()
 }
 
 System.exit(0)
