@@ -1,5 +1,7 @@
 CREATE TABLE IF NOT EXISTS local.ctg_studies (
   nct_id STRING,
-  study_record STRING
+  core_study_record STRING,
+  derived_section_norm_json STRING,
+  version_holder_json STRING
 )
 USING iceberg;
