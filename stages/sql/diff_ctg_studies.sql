@@ -228,28 +228,50 @@ WITH raw_data AS (
 )
 SELECT * FROM extract_study_components(raw_data, 'source');
 
-CREATE OR REPLACE VIEW target_data AS
-WITH iceberg_data AS (
-    SELECT
-        nct_id,
-        core_study_record,
-        derived_section_norm_json,
-        version_holder_json
-    FROM iceberg_scan('brick/iceberg/ctg_studies')
-    -- ORDER BY nct_id LIMIT 10
+-- Prepare source data with split columns for two-table architecture
+CREATE OR REPLACE VIEW source_data_split AS
+WITH raw_data AS (
+    SELECT nct_id, study_record
+    FROM read_parquet('brick/ctg-studies.parquet/*.parquet')
 )
 SELECT
     nct_id,
     core_study_record,
     derived_section_norm_json,
     version_holder_json,
-    -- Hash each component for comparison (no re-normalization needed - data is already normalized)
-    md5(core_study_record::VARCHAR) AS core_hash,
-    md5(derived_section_norm_json::VARCHAR) AS derived_hash,
-    md5(version_holder_json::VARCHAR) AS version_hash
-FROM iceberg_data;
+    core_hash,
+    derived_hash,
+    version_hash
+FROM extract_study_components(raw_data, 'source');
 
--- Generate upserts (new records or changed records)
+-- Create views for target data from both tables
+CREATE OR REPLACE VIEW target_core_data AS
+SELECT
+    nct_id,
+    core_study_record,
+    md5(core_study_record::VARCHAR) AS core_hash
+FROM iceberg_scan('brick/iceberg/ctg_studies_core', version = 'version-hint.text');
+
+
+CREATE OR REPLACE VIEW target_derived_data AS
+SELECT
+    nct_id,
+    derived_section_norm_json,
+    md5(derived_section_norm_json::VARCHAR) AS derived_hash
+FROM iceberg_scan('brick/iceberg/ctg_studies_derived', version = 'version-hint.text');
+
+-- Combine target data with full hash comparison
+CREATE OR REPLACE VIEW target_data_combined AS
+SELECT
+    COALESCE(c.nct_id, d.nct_id) as nct_id,
+    c.core_study_record,
+    d.derived_section_norm_json,
+    c.core_hash,
+    d.derived_hash
+FROM target_core_data c
+FULL OUTER JOIN target_derived_data d ON c.nct_id = d.nct_id;
+
+-- Generate unified upserts with columns_to_update pattern
 CREATE OR REPLACE VIEW upserts AS
 SELECT
     s.nct_id,
@@ -258,49 +280,61 @@ SELECT
     s.version_holder_json,
     CASE
         WHEN t.nct_id IS NULL THEN 'INSERT'
-        WHEN s.core_hash != t.core_hash
-            OR s.derived_hash != t.derived_hash
-            OR s.version_hash != t.version_hash
+        WHEN s.core_hash != COALESCE(t.core_hash, '')
+            OR s.derived_hash != COALESCE(t.derived_hash, '')
             THEN 'UPDATE'
     END as operation_type,
     -- Include change details for debugging
     CASE WHEN t.nct_id IS NULL OR s.core_hash != COALESCE(t.core_hash, '') THEN true ELSE false END as core_changed,
     CASE WHEN t.nct_id IS NULL OR s.derived_hash != COALESCE(t.derived_hash, '') THEN true ELSE false END as derived_changed,
-    CASE WHEN t.nct_id IS NULL OR s.version_hash != COALESCE(t.version_hash, '') THEN true ELSE false END as version_changed,
-    -- Generate list of columns to update
+    -- Generate list of columns to update (matching table names)
     CASE
-        WHEN t.nct_id IS NULL THEN ['core_study_record', 'derived_section_norm_json', 'version_holder_json']
+        WHEN t.nct_id IS NULL THEN ['core_study_record', 'derived_section_norm_json']
         ELSE (
             SELECT list(col_name)
             FROM (
                 SELECT
                     unnest( CASE WHEN s.core_hash != COALESCE(t.core_hash, '') THEN ['core_study_record'] ELSE [] END
                           + CASE WHEN s.derived_hash != COALESCE(t.derived_hash, '') THEN ['derived_section_norm_json'] ELSE [] END
-                          + CASE WHEN s.version_hash != COALESCE(t.version_hash, '') THEN ['version_holder_json'] ELSE [] END
                     ) as col_name
             )
         )
     END as columns_to_update
-FROM source_data s
-LEFT JOIN target_data t ON s.nct_id = t.nct_id
+FROM source_data_split s
+LEFT JOIN target_data_combined t ON s.nct_id = t.nct_id
 WHERE t.nct_id IS NULL
    OR s.core_hash != COALESCE(t.core_hash, '')
-   OR s.derived_hash != COALESCE(t.derived_hash, '')
-   OR s.version_hash != COALESCE(t.version_hash, '');
+   OR s.derived_hash != COALESCE(t.derived_hash, '');
 
--- Generate deletions (records that exist in target but not in source)
+-- Generate unified deletions
 CREATE OR REPLACE VIEW deletions AS
 SELECT
     t.nct_id,
-    'DELETE' as operation_type
-FROM target_data t
-LEFT JOIN source_data s ON t.nct_id = s.nct_id
+    'DELETE' as operation_type,
+    CASE
+        WHEN c.nct_id IS NOT NULL AND d.nct_id IS NOT NULL THEN ['core_study_record', 'derived_section_norm_json']
+        WHEN c.nct_id IS NOT NULL THEN ['core_study_record']
+        WHEN d.nct_id IS NOT NULL THEN ['derived_section_norm_json']
+    END as columns_to_update
+FROM target_data_combined t
+LEFT JOIN source_data_split s ON t.nct_id = s.nct_id
+LEFT JOIN target_core_data c ON t.nct_id = c.nct_id
+LEFT JOIN target_derived_data d ON t.nct_id = d.nct_id
 WHERE s.nct_id IS NULL;
 
--- Export upserts to parquet (single materialization)
+-- Export unified upserts to parquet
 SELECT 'Exporting upserts...' as status;
 COPY (SELECT * FROM upserts) TO 'brick/diff/upserts.parquet' (FORMAT PARQUET);
 
--- Export deletions to parquet (single materialization)
+-- Export unified deletions to parquet
 SELECT 'Exporting deletions...' as status;
 COPY (SELECT * FROM deletions) TO 'brick/diff/deletions.parquet' (FORMAT PARQUET);
+
+-- Export version metadata separately
+CREATE OR REPLACE VIEW version_metadata AS
+SELECT DISTINCT version_holder_json
+FROM source_data_split
+WHERE version_holder_json IS NOT NULL;
+
+SELECT 'Exporting version metadata...' as status;
+COPY (SELECT * FROM version_metadata) TO 'brick/diff/version_metadata.parquet' (FORMAT PARQUET);
