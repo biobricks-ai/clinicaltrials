@@ -8,9 +8,9 @@ val source = scala.io.Source.fromFile(sqlFile)
 val sqlContent = source.mkString
 source.close()
 
-// Split on semicolons to support multiple SQL statements
+// Split on /^-- @@$/ to be very strict (line must contain only "-- @@")
 val sqlStatements = sqlContent
-  .split(";")
+  .split("(?m)^-- @@$")
   .map(_.trim)
   .filter(_.nonEmpty)
 
