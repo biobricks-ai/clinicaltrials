@@ -15,6 +15,17 @@ export CTGOV_DUCKDB_MEMORY_LIMIT=${CTGOV_DUCKDB_MEMORY_LIMIT:-${DEFAULT_DUCKDB_M
 localpath=$(pwd)
 echo "Local path: $localpath"
 
+# Validate version consistency before proceeding
+echo "=== VERSION CONSISTENCY CHECK ==="
+version_check_output=$(duckdb -ascii -noheader -f stages/sql/validate_version_consistency.sql)
+echo "$version_check_output"
+
+# Check if validation passed (look for "ok" in TAP output)
+if ! echo "$version_check_output" | grep -q "^ok "; then
+    echo "ERROR: Version consistency check failed. Aborting diff generation."
+    exit 1
+fi
+
 # Create diff output directory
 export diffpath="$localpath/brick/diff"
 mkdir -p "$diffpath"
