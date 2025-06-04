@@ -13,13 +13,25 @@
 
   outputs = { self, nixpkgs, flake-utils, dev-shell }:
     flake-utils.lib.eachDefaultSystem (system:
-      with import nixpkgs { inherit system; }; {
+      let
+        use-jdk = nixpkgs.legacyPackages.${system}.jdk21_headless;
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [
+            (final: prev: {
+              jdk = use-jdk;
+              jre = use-jdk;
+            })
+          ];
+        };
+      in {
         devShells.default = dev-shell.devShells.${system}.default.overrideAttrs
           (oldAttrs:
             let
             in {
               buildInputs = [
-                (with pkgs; [ wget unzip parallel-full coreutils gettext ])
+                use-jdk
+                (with pkgs; [ wget unzip parallel-full coreutils gettext spark ])
                 # Use duckdb from dev-shell
                 dev-shell.packages.${system}.duckdb
               ];

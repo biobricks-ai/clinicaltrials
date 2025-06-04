@@ -23,3 +23,29 @@ stages:
       - download/ctg-studies.json.zip
     outs:
       - brick/ctg-studies.parquet
+
+  diff:
+    cmd: stages/03_diff.sh
+    deps:
+      - stages/03_diff.sh
+      - stages/sql/diff_ctg_studies.sql
+      - stages/sql/validate_version_consistency.sql
+      - brick/ctg-studies.parquet
+    outs:
+      - brick/diff:
+          push: false
+          cache: false
+
+  update-iceberg:
+    cmd: stages/04_update-iceberg.sh
+    deps:
+      - stages/04_update-iceberg.sh
+      - stages/spark/sql/create_ctg_studies.sql
+      - stages/spark/sql/apply_core_changes.sql
+      - stages/spark/sql/apply_derived_changes.sql
+      - brick/diff
+    outs:
+      - brick/iceberg/ctg_studies_core:
+          persist: true
+      - brick/iceberg/ctg_studies_derived:
+          persist: true
