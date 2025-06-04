@@ -29,6 +29,7 @@ stages:
     deps:
       - stages/03_diff.sh
       - stages/sql/diff_ctg_studies.sql
+      - stages/sql/validate_version_consistency.sql
       - brick/ctg-studies.parquet
     outs:
       - brick/diff:
@@ -40,8 +41,11 @@ stages:
     deps:
       - stages/04_update-iceberg.sh
       - stages/spark/sql/create_ctg_studies.sql
-      - stages/spark/sql/apply_all_changes.sql
+      - stages/spark/sql/apply_core_changes.sql
+      - stages/spark/sql/apply_derived_changes.sql
       - brick/diff
     outs:
-      - brick/iceberg/ctg_studies:
+      - brick/iceberg/ctg_studies_core:
+          persist: true
+      - brick/iceberg/ctg_studies_derived:
           persist: true
