@@ -38,11 +38,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1747171310,
-        "narHash": "sha256-6jUr3Xq1/X6YLCb+BR96Px9AydYM5PfUvWYLkkcCA5c=",
+        "lastModified": 1748467745,
+        "narHash": "sha256-kNXfxiJi/Oeu2SjcLn8ZAVFiEEKkuppn3zKIBLvL018=",
         "owner": "biobricks-ai",
         "repo": "dev-shell",
-        "rev": "b56d9d1fabf722ae0f68c8bcf93b2b98df2bab2b",
+        "rev": "da0ad2bf4967585f7a8091e5e899ac3a929ae9ab",
         "type": "github"
       },
       "original": {
@@ -122,11 +122,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1748162331,
-        "narHash": "sha256-rqc2RKYTxP3tbjA+PB3VMRQNnjesrT0pEofXQTrMsS8=",
+        "lastModified": 1748302896,
+        "narHash": "sha256-ixMT0a8mM091vSswlTORZj93WQAJsRNmEvqLL+qwTFM=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "7c43f080a7f28b2774f3b3f43234ca11661bf334",
+        "rev": "7848cd8c982f7740edf76ddb3b43d234cb80fc4d",
         "type": "github"
       },
       "original": {
