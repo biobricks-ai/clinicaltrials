@@ -32,13 +32,14 @@ echo "Dataset path: $datasetpath"
 find raw -type f -printf "%f\n" \
   | grep -P -o 'NCT\d{4}' \
   | sort -u \
-  | parallel --bar '
+  | parallel --bar "$(cat <<'EOF'
       export PREFIX={};
       #echo "Working on prefix: $PREFIX";
       < stages/NCT_json2parquet_prefixed.sql \
-	      perl -pe "
-          s,NCT_PREFIX_JSON,\$ENV{PREFIX}, ;
-          s,NCT_PREFIX_PARQUET,\$ENV{PREFIX}_, ;
-        " \
+	perl -MEnv=PREFIX -pe '
+          s<NCT_PREFIX_JSON><*/${PREFIX}>   ;
+          s<NCT_PREFIX_PARQUET><${PREFIX}_> ;
+        ' \
         | duckdb
-    '
+EOF
+    )"
