@@ -1,4 +1,4 @@
--- syntax: DuckDB SQL
+-- sql-dialect: DuckDB
 --
 -- NAME
 --
